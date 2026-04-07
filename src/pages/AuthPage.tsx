@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo';
 
 interface AuthPageProps {
   mode: 'login' | 'signup';
@@ -26,92 +27,105 @@ function PasswordStrength({ password }: { password: string }) {
     <div className="mt-2">
       <div className="flex gap-1">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-[3px] flex-1 rounded-full transition-all" style={{ background: i < criteria ? color : 'var(--border)' }} />
+          <div
+            key={i}
+            className="h-[2px] flex-1 rounded-full transition-all"
+            style={{ background: i < criteria ? color : 'var(--border)' }}
+          />
         ))}
       </div>
-      {label && <p className="mt-1 font-body text-[0.72rem]" style={{ color }}>{label}</p>}
+      {label && (
+        <p className="mt-1 font-body text-[0.72rem]" style={{ color }}>
+          {label}
+        </p>
+      )}
     </div>
   );
 }
 
-const slideData = [
+const words = ['wealth.', 'freedom.', 'clarity.', 'growth.'];
+const signupPasswordPattern = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/;
+
+function RotatingWord({ reduceMotion }: { reduceMotion: boolean }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const timer = setInterval(() => setIndex((value) => (value + 1) % words.length), 2600);
+    return () => clearInterval(timer);
+  }, [reduceMotion]);
+
+  if (reduceMotion) {
+    return (
+      <span className="inline-block" style={{ color: 'var(--accent)' }}>
+        {words[0]}
+      </span>
+    );
+  }
+
+  return (
+    <span className="relative inline-block min-w-[180px]">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-block"
+          style={{ color: 'var(--accent)' }}
+        >
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+const stats = [
+  { value: '2,400+', label: 'Plans generated' },
+  { value: '$0', label: 'Account fees' },
+  { value: '< 4min', label: 'Plan delivery' },
+];
+
+const testimonials = [
   {
-    title: 'Introducing WealthPath 1.0®',
-    sub: 'AI-powered planning grounded in live market data.',
-    card: (
-      <div className="w-[380px] rounded-[24px] bg-white p-6" style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
-        <p className="mb-1 font-body text-[0.68rem] font-bold uppercase tracking-wider" style={{ color: '#94a3b8' }}>TOTAL BALANCE</p>
-        <p className="font-display text-[2rem] font-bold" style={{ letterSpacing: '-1px', color: '#1a1714' }}>$24,840.00</p>
-        <p className="mb-4 font-body text-[0.78rem] font-semibold" style={{ color: '#16b85e' }}>$1.3M net worth projection at 65</p>
-        <svg viewBox="0 0 340 60" className="mb-4 w-full">
-          <defs><linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgba(22,184,94,.2)" /><stop offset="100%" stopColor="rgba(22,184,94,0)" /></linearGradient></defs>
-          <path d="M0 50 Q60 45 120 35 Q180 22 240 18 Q300 12 340 6" fill="none" stroke="#16b85e" strokeWidth="2.5" />
-          <path d="M0 50 Q60 45 120 35 Q180 22 240 18 Q300 12 340 6 L340 60 L0 60 Z" fill="url(#ag2)" />
-        </svg>
-        <div className="flex items-center justify-between border-t border-[#e5e7eb] py-2 font-body text-[0.78rem]">
-          <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#16b85e]" />Cash Account</span>
-          <span className="font-bold" style={{ color: '#0d9a4d' }}>$4,240</span>
-        </div>
-        <div className="flex items-center justify-between border-t border-[#e5e7eb] py-2 font-body text-[0.78rem]">
-          <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#3b82f6]" />Investments</span>
-          <span className="font-bold" style={{ color: '#0d9a4d' }}>$18,600</span>
-        </div>
-      </div>
-    ),
-    overlay: (
-      <div className="absolute -bottom-5 -left-5 rounded-[16px] p-4 shadow-lg" style={{ background: '#13141a', border: '1px solid #252830' }}>
-        <p className="font-body text-[0.82rem] font-semibold" style={{ color: '#16b85e' }}>📈 +$1,240 this month</p>
-        <p className="font-body text-[0.72rem]" style={{ color: 'rgba(240,239,244,0.45)' }}>Portfolio up 5.2%</p>
-      </div>
-    ),
+    quote:
+      "WealthPath gave me a real financial plan in under 4 minutes. I've never had this level of clarity about my money.",
+    name: 'Sarah K.',
+    role: 'Beta user',
+    avatar:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80',
   },
   {
-    title: 'RAG pipeline, live every hour.',
-    sub: 'Your plan updates as markets move.',
-    card: (
-      <div className="w-[380px] rounded-[24px] bg-white p-6" style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
-        <span className="mb-3 inline-block rounded-full px-3 py-1 font-body text-[0.7rem] font-bold" style={{ background: '#e8f9ef', color: '#16b85e' }}>AI PLAN READY</span>
-        <p className="mb-4 font-display text-[1.1rem] font-bold" style={{ color: '#1a1714' }}>Your personalized investment plan</p>
-        {[{ label: 'Stocks', pct: 45, color: '#16b85e' }, { label: 'Bonds', pct: 20, color: '#3b82f6' }, { label: 'Cash', pct: 15, color: '#f59e0b' }].map(b => (
-          <div key={b.label} className="mb-2">
-            <div className="mb-1 flex justify-between font-body text-[0.75rem]"><span style={{ color: '#6b7280' }}>{b.label}</span><span className="font-bold">{b.pct}%</span></div>
-            <div className="h-[6px] rounded-full bg-[#e5e7eb]"><div className="h-full rounded-full" style={{ width: `${b.pct}%`, background: b.color }} /></div>
-          </div>
-        ))}
-        <button className="mt-3 w-full rounded-[10px] py-2.5 font-body text-[0.85rem] font-semibold text-white" style={{ background: '#1a1714' }}>View full plan →</button>
-      </div>
-    ),
-    overlay: (
-      <div className="absolute -bottom-5 -left-5 rounded-[16px] p-4 shadow-lg" style={{ background: '#13141a', border: '1px solid #252830' }}>
-        <p className="font-body text-[0.82rem] font-semibold" style={{ color: '#16b85e' }}>🤖 Gemini 2.0 Flash</p>
-        <p className="font-body text-[0.72rem]" style={{ color: 'rgba(240,239,244,0.45)' }}>Plan generated in 2.4s</p>
-      </div>
-    ),
+    quote:
+      'I finally know exactly how much to invest each month without second-guessing every decision.',
+    name: 'Daniel R.',
+    role: 'Early adopter',
+    avatar:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80',
   },
   {
-    title: 'Debt destroyed mathematically.',
-    sub: 'Avalanche vs Snowball — you choose.',
-    card: (
-      <div className="w-[380px] rounded-[24px] bg-white p-6" style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)' }}>
-        <span className="mb-3 inline-block rounded-full px-3 py-1 font-body text-[0.7rem] font-bold" style={{ background: '#fef3c7', color: '#92400e' }}>DEBT PLANNER</span>
-        <p className="mb-4 font-display text-[1.2rem] font-bold" style={{ color: '#1a1714' }}>Debt-free in 2.8 years</p>
-        <svg viewBox="0 0 300 70" className="mb-3 w-full">
-          <path d="M10 60 Q60 52 110 40 Q170 25 230 15 Q270 8 290 5" fill="none" stroke="#16b85e" strokeWidth="2.5" />
-          <path d="M10 60 Q70 55 120 48 Q180 38 240 25 Q270 18 290 12" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="6,3" />
-        </svg>
-        <p className="font-body text-[0.85rem] font-semibold" style={{ color: '#16b85e' }}>Saving $4,200 in interest</p>
-      </div>
-    ),
-    overlay: (
-      <div className="absolute -bottom-5 -left-5 rounded-[16px] p-4 shadow-lg" style={{ background: '#13141a', border: '1px solid #252830' }}>
-        <p className="font-body text-[0.82rem] font-semibold" style={{ color: '#16b85e' }}>🎯 Goal on track</p>
-      </div>
-    ),
+    quote:
+      'The live market + AI combo saved me hours each week. It feels like having a smart financial copilot.',
+    name: 'Priya M.',
+    role: 'Product designer',
+    avatar:
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=160&q=80',
+  },
+  {
+    quote:
+      'Debt payoff strategies used to confuse me. Now I can compare avalanche vs snowball instantly.',
+    name: 'Marcus T.',
+    role: 'Software engineer',
+    avatar:
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&q=80',
   },
 ];
 
 export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -120,316 +134,553 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [slideIndex, setSlideIndex] = useState(0);
-  const [hoveringRight, setHoveringRight] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('wealthpath-theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
-    document.title = mode === 'login' ? 'Sign in — WealthPath' : 'Get started — WealthPath';
+    document.title = mode === 'login' ? 'Sign in - WealthPath' : 'Get started - WealthPath';
   }, [mode]);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') navigate('/'); };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') navigate('/');
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [navigate]);
 
   useEffect(() => {
-    if (hoveringRight) return;
-    const timer = setInterval(() => setSlideIndex(i => (i + 1) % slideData.length), 4000);
+    if (reduceMotion) return;
+    const timer = setInterval(() => {
+      setTestimonialIndex((previous) => (previous + 1) % testimonials.length);
+    }, 5200);
     return () => clearInterval(timer);
-  }, [hoveringRight]);
+  }, [reduceMotion]);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('wealthpath-theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
+    if (!success) return;
+    const timer = setTimeout(() => navigate('/'), 1200);
+    return () => clearTimeout(timer);
+  }, [navigate, success]);
 
   const validate = () => {
-    const errs: Record<string, string> = {};
-    if (mode === 'signup' && !name.trim()) errs.name = 'Please enter your full name.';
-    if (!email || !/\S+@\S+\.\S+/.test(email)) errs.email = 'Please enter a valid email address.';
-    if (!password || password.length < 8) errs.password = mode === 'signup' ? 'Must include uppercase, number, and special character.' : 'Password must be at least 8 characters.';
-    return errs;
+    const nextErrors: Record<string, string> = {};
+
+    if (mode === 'signup' && !name.trim()) {
+      nextErrors.name = 'Please enter your full name.';
+    }
+
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      nextErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (mode === 'signup') {
+      if (!signupPasswordPattern.test(password)) {
+        nextErrors.password =
+          'Use 8+ chars including an uppercase letter, a number, and a symbol.';
+      }
+    } else if (password.length < 8) {
+      nextErrors.password = 'Password must be at least 8 characters.';
+    }
+
+    return nextErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const errs = validate();
-    setErrors(errs);
-    if (Object.keys(errs).length > 0) return;
+  const onSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setNotice('');
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSuccess(true); }, 1500);
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+    }, 1400);
   };
+
+  const updateField =
+    (field: 'name' | 'email' | 'password', setter: (value: string) => void) =>
+    (value: string) => {
+      setter(value);
+      if (!errors[field]) return;
+      setErrors((previous) => {
+        const next = { ...previous };
+        delete next[field];
+        return next;
+      });
+    };
 
   const inputClass = (field: string) =>
-    `w-full rounded-[var(--radius-md)] px-4 py-3 font-body text-[0.9rem] outline-none transition-all duration-200 ${
-      errors[field] ? 'focus:shadow-[0_0_0_4px_rgba(239,68,68,0.12)]' : 'focus:shadow-[0_0_0_4px_var(--accent-glow)]'
+    `w-full rounded-xl border px-4 py-3 font-body text-[0.9rem] outline-none transition-all duration-200 ${
+      errors[field]
+        ? 'border-red-500 focus-visible:ring-2 focus-visible:ring-red-500/25'
+        : 'border-[var(--border)] focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent-glow)]'
     }`;
 
-  const stagger = (i: number) => ({ initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.55, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as const } });
+  const stagedMotion = (index: number) => ({
+    initial: reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: {
+      duration: reduceMotion ? 0 : 0.34,
+      delay: reduceMotion ? 0 : index * 0.045,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  });
 
   if (success) {
     return (
-      <div className="flex h-screen items-center justify-center" style={{ background: 'var(--bg)' }}>
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }} className="text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ background: 'var(--accent-light)', border: '2px solid var(--accent)' }}>
+      <div
+        className="flex min-h-[100dvh] items-center justify-center"
+        style={{ background: 'var(--bg)' }}
+      >
+        <motion.div
+          initial={reduceMotion ? false : { scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: reduceMotion ? 0 : 0.32, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <div
+            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full"
+            style={{
+              background: 'var(--accent-light)',
+              border: '2px solid var(--accent)',
+            }}
+          >
             <motion.svg width="40" height="40" viewBox="0 0 40 40">
-              <motion.path d="M10 20L17 27L30 14" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, delay: 0.3 }} />
+              <motion.path
+                d="M10 20L17 27L30 14"
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                initial={{ pathLength: reduceMotion ? 1 : 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: reduceMotion ? 0 : 0.45, delay: 0.12 }}
+              />
             </motion.svg>
           </div>
-          <h2 className="mb-2 font-display text-[1.8rem] font-bold" style={{ color: 'var(--ink)' }}>You're all set!</h2>
-          <p className="font-body text-[0.9rem]" style={{ color: 'var(--muted)' }}>Redirecting to your dashboard...</p>
+          <h2 className="mb-2 font-display text-[1.8rem]" style={{ color: 'var(--ink)' }}>
+            You are all set!
+          </h2>
+          <p className="font-body text-[0.9rem]" style={{ color: 'var(--muted)' }}>
+            Redirecting to your dashboard...
+          </p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="grid h-screen overflow-hidden md:grid-cols-[520px_1fr]">
-      {/* Left Panel */}
-      <div className="relative flex flex-col justify-center px-7 py-12 md:px-16"
-        style={{
-          background: isDark ? 'var(--bg-secondary)' : '#ffffff',
-          borderRight: '1px solid var(--border)',
-        }}>
-        {/* Logo */}
-        <motion.div {...stagger(0)} className="mb-[52px]">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: isDark ? 'var(--accent)' : '#1a1714' }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12 7L7 13L2 7L7 1Z" fill={isDark ? '#0e0f14' : '#16b85e'} /></svg>
-            </div>
-            <span className="font-body text-base font-bold" style={{ color: 'var(--ink)' }}>WealthPath</span>
+    <div className="relative grid min-h-[100dvh] md:h-[100dvh] md:grid-cols-[480px_1fr]">
+      <div
+        className="pointer-events-none absolute bottom-0 left-[480px] top-0 hidden w-px md:block"
+        style={{ background: 'var(--border)' }}
+      />
+      {/* Left Panel - Form */}
+      <div
+        className="relative flex flex-col justify-center px-7 py-10 sm:px-10 md:overflow-y-auto md:px-14"
+        style={{ background: 'var(--bg)' }}
+      >
+        <motion.div {...stagedMotion(0)} className="mb-10 md:mb-12">
+          <Link to="/" className="flex items-center gap-2.5">
+            <BrandLogo iconClassName="h-10 w-10 rounded-xl" textClassName="font-body text-[0.98rem] font-semibold" />
           </Link>
-          <Link to="/" className="mt-3 block font-body text-[0.8rem]" style={{ color: 'var(--muted)' }}>← Back</Link>
+          <Link
+            to="/"
+            className="mt-3 inline-block font-body text-[0.8rem] transition-colors hover:text-[var(--ink)]"
+            style={{ color: 'var(--muted)' }}
+          >
+            {'<-'} Back to home
+          </Link>
         </motion.div>
 
         <AnimatePresence mode="wait">
-          <motion.div key={mode} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.28 }}>
-            <motion.h1 {...stagger(1)} className="mb-2.5 font-display text-[2.4rem] font-bold leading-[1.1]" style={{ letterSpacing: '-0.05em', color: 'var(--ink)' }}>
-              {mode === 'login' ? 'Good to have you back.' : 'Start building wealth.'}
+          <motion.div
+            key={mode}
+            initial={reduceMotion ? false : { opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduceMotion ? {} : { opacity: 0, x: -8 }}
+            transition={{ duration: reduceMotion ? 0 : 0.2 }}
+          >
+            <motion.h1
+              {...stagedMotion(1)}
+              className="mb-2 font-display text-[2rem] leading-[1.1] tracking-tight sm:text-[2.2rem]"
+              style={{ color: 'var(--ink)' }}
+            >
+              {mode === 'login' ? 'Welcome back.' : 'Start building wealth.'}
             </motion.h1>
-            <motion.p {...stagger(2)} className="mb-10 font-body text-[0.88rem]" style={{ color: 'var(--muted)' }}>
+
+            <motion.p
+              {...stagedMotion(2)}
+              className="mb-7 font-body text-[0.88rem]"
+              style={{ color: 'var(--muted)' }}
+            >
               {mode === 'login' ? (
-                <>New here? <Link to="/signup" className="font-semibold no-underline hover:underline" style={{ color: 'var(--accent)' }}>Create an account →</Link></>
+                <>
+                  New here?{' '}
+                  <Link
+                    to="/signup"
+                    className="font-medium no-underline hover:underline"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Create an account
+                  </Link>
+                </>
               ) : (
-                <>Already a member? <Link to="/login" className="font-semibold no-underline hover:underline" style={{ color: 'var(--accent)' }}>Sign in</Link></>
+                <>
+                  Already a member?{' '}
+                  <Link
+                    to="/login"
+                    className="font-medium no-underline hover:underline"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Sign in
+                  </Link>
+                </>
               )}
             </motion.p>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
               {mode === 'signup' && (
-                <motion.div {...stagger(3)}>
-                  <label className="mb-[7px] block font-body text-[0.8rem] font-medium" style={{ color: 'var(--ink-2)' }}>Full name</label>
-                  <input type="text" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)}
+                <motion.div {...stagedMotion(3)}>
+                  <label
+                    htmlFor="auth-name"
+                    className="mb-1.5 block font-body text-[0.8rem] font-medium"
+                    style={{ color: 'var(--ink-2)' }}
+                  >
+                    Full name
+                  </label>
+                  <input
+                    id="auth-name"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Your full name"
+                    value={name}
+                    onChange={(event) => updateField('name', setName)(event.target.value)}
                     className={inputClass('name')}
-                    style={{ background: 'var(--bg)', border: errors.name ? '1.5px solid #ef4444' : '1.5px solid var(--border)', color: 'var(--ink)' }}
-                    onFocus={e => { if (!errors.name) e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                    onBlur={e => { if (!errors.name) e.currentTarget.style.borderColor = 'var(--border)'; }}
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--ink)' }}
+                    aria-invalid={Boolean(errors.name)}
+                    aria-describedby={errors.name ? 'name-error' : undefined}
                   />
-                  {errors.name && <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mt-1 font-body text-[0.77rem]" style={{ color: '#ef4444' }}>{errors.name}</motion.p>}
+                  {errors.name && (
+                    <p id="name-error" className="mt-1 font-body text-[0.77rem] text-red-500">
+                      {errors.name}
+                    </p>
+                  )}
                 </motion.div>
               )}
 
-              <motion.div {...stagger(mode === 'signup' ? 4 : 3)}>
-                <label className="mb-[7px] block font-body text-[0.8rem] font-medium" style={{ color: 'var(--ink-2)' }}>Email</label>
-                <input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)}
+              <motion.div {...stagedMotion(mode === 'signup' ? 4 : 3)}>
+                <label
+                  htmlFor="auth-email"
+                  className="mb-1.5 block font-body text-[0.8rem] font-medium"
+                  style={{ color: 'var(--ink-2)' }}
+                >
+                  Email
+                </label>
+                <input
+                  id="auth-email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(event) => updateField('email', setEmail)(event.target.value)}
                   className={inputClass('email')}
-                  style={{ background: 'var(--bg)', border: errors.email ? '1.5px solid #ef4444' : '1.5px solid var(--border)', color: 'var(--ink)' }}
-                  onFocus={e => { if (!errors.email) e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                  onBlur={e => { if (!errors.email) e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  style={{ background: 'var(--bg-secondary)', color: 'var(--ink)' }}
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                 />
-                {errors.email && <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mt-1 font-body text-[0.77rem]" style={{ color: '#ef4444' }}>{errors.email}</motion.p>}
+                {errors.email && (
+                  <p id="email-error" className="mt-1 font-body text-[0.77rem] text-red-500">
+                    {errors.email}
+                  </p>
+                )}
               </motion.div>
 
-              <motion.div {...stagger(mode === 'signup' ? 5 : 4)}>
-                <label className="mb-[7px] block font-body text-[0.8rem] font-medium" style={{ color: 'var(--ink-2)' }}>Password</label>
+              <motion.div {...stagedMotion(mode === 'signup' ? 5 : 4)}>
+                <label
+                  htmlFor="auth-password"
+                  className="mb-1.5 block font-body text-[0.8rem] font-medium"
+                  style={{ color: 'var(--ink-2)' }}
+                >
+                  Password
+                </label>
                 <div className="relative">
-                  <input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
-                    className={inputClass('password')}
-                    style={{ background: 'var(--bg)', border: errors.password ? '1.5px solid #ef4444' : '1.5px solid var(--border)', color: 'var(--ink)' }}
-                    onFocus={e => { if (!errors.password) e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                    onBlur={e => { if (!errors.password) e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  <input
+                    id="auth-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                    placeholder="********"
+                    value={password}
+                    onChange={(event) => updateField('password', setPassword)(event.target.value)}
+                    className={`${inputClass('password')} pr-11`}
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--ink)' }}
+                    aria-invalid={Boolean(errors.password)}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-[14px] top-1/2 -translate-y-1/2 transition-colors" style={{ color: 'var(--muted-2)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-2)')}>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((previous) => !previous)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-glow)]"
+                    style={{ color: 'var(--muted-2)' }}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mt-1 font-body text-[0.77rem]" style={{ color: '#ef4444' }}>{errors.password}</motion.p>}
+                {errors.password && (
+                  <p id="password-error" className="mt-1 font-body text-[0.77rem] text-red-500">
+                    {errors.password}
+                  </p>
+                )}
                 {mode === 'signup' && password.length > 0 && <PasswordStrength password={password} />}
               </motion.div>
 
               {mode === 'login' && (
-                <motion.div {...stagger(5)} className="flex items-center justify-between">
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <div onClick={() => setRemember(!remember)} className="flex h-4 w-4 items-center justify-center rounded-[5px] transition-all" style={{ border: `1.5px solid ${remember ? 'var(--accent)' : 'var(--border)'}`, background: remember ? 'var(--accent)' : 'transparent' }}>
-                      {remember && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                    </div>
-                    <span className="font-body text-[0.82rem]" style={{ color: 'var(--muted)' }}>Remember for 30 days</span>
+                <motion.div {...stagedMotion(5)} className="flex items-center justify-between">
+                  <label htmlFor="remember-me" className="flex cursor-pointer items-center gap-2">
+                    <input
+                      id="remember-me"
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(event) => setRemember(event.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <span
+                      className="flex h-4 w-4 items-center justify-center rounded border-[1.5px] transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--accent-glow)]"
+                      style={{
+                        borderColor: remember ? 'var(--accent)' : 'var(--border)',
+                        background: remember ? 'var(--accent)' : 'transparent',
+                      }}
+                      aria-hidden="true"
+                    >
+                      {remember && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path
+                            d="M1 4L3.5 6.5L9 1"
+                            stroke="white"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="font-body text-[0.82rem]" style={{ color: 'var(--muted)' }}>
+                      Remember me
+                    </span>
                   </label>
-                  <a href="#" className="font-body text-[0.82rem] font-semibold" style={{ color: 'var(--accent)' }}>Forgot password?</a>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNotice('Reset password flow can be connected once the backend endpoint is ready.')
+                    }
+                    className="font-body text-[0.82rem] font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-glow)]"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Forgot password?
+                  </button>
                 </motion.div>
               )}
 
-              <motion.div {...stagger(6)}>
+              {notice && (
+                <p className="font-body text-[0.77rem]" style={{ color: 'var(--muted)' }} aria-live="polite">
+                  {notice}
+                </p>
+              )}
+
+              <motion.div {...stagedMotion(6)} className="mt-1">
                 <motion.button
                   type="submit"
                   disabled={loading}
-                  whileHover={{ scale: 1.01, y: -1.5 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="auth-submit-btn flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] py-[13px] font-body text-[0.9rem] font-semibold text-white transition-all duration-200 disabled:opacity-75 disabled:cursor-not-allowed"
-                  style={{ background: 'var(--ink)', boxShadow: 'var(--shadow-md)' }}
+                  whileHover={reduceMotion ? undefined : { scale: 1.003 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.995 }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl py-3 font-body text-[0.9rem] font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70"
+                  style={{ background: 'var(--accent)' }}
                 >
                   {loading ? (
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
-                    <>{mode === 'login' ? 'Sign in →' : 'Create account →'}</>
+                    <>{mode === 'login' ? 'Sign in' : 'Create account'}</>
                   )}
                 </motion.button>
               </motion.div>
 
-              <motion.div {...stagger(7)} className="flex items-center gap-3">
-                <div className="h-px flex-1" style={{ background: 'var(--border)' }} />
-                <span className="font-body text-[0.78rem]" style={{ color: 'var(--muted-2)' }}>or</span>
-                <div className="h-px flex-1" style={{ background: 'var(--border)' }} />
+              <motion.div {...stagedMotion(7)} className="relative my-2 h-5 w-full">
+                <div
+                  className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2"
+                  style={{ background: 'var(--border-strong)' }}
+                />
+                <span
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-3 font-body text-[0.78rem] leading-none"
+                  style={{ color: 'var(--muted)', background: 'var(--bg)' }}
+                >
+                  or
+                </span>
               </motion.div>
 
-              <motion.div {...stagger(8)}>
+              <motion.div {...stagedMotion(8)}>
                 <motion.button
                   type="button"
-                  whileHover={{ scale: 1.01, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex w-full items-center justify-center gap-2.5 rounded-[var(--radius-md)] py-3 font-body text-[0.88rem] font-medium transition-all duration-200"
-                  style={{ background: 'var(--bg-card)', border: '1.5px solid var(--border)', color: 'var(--ink)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-glow)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  whileHover={reduceMotion ? undefined : { scale: 1.003 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.995 }}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-xl border py-3 font-body text-[0.88rem] font-medium transition-all duration-200 hover:border-[var(--border-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-glow)]"
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
                   </svg>
                   Continue with Google
                 </motion.button>
               </motion.div>
 
               {mode === 'signup' && (
-                <motion.p {...stagger(9)} className="text-center font-body text-[0.73rem]" style={{ color: 'var(--muted-2)' }}>
+                <motion.p
+                  {...stagedMotion(9)}
+                  className="text-center font-body text-[0.73rem]"
+                  style={{ color: 'var(--muted-2)' }}
+                >
                   By continuing, you agree to our Terms and Privacy Policy.
                 </motion.p>
               )}
             </form>
           </motion.div>
         </AnimatePresence>
-
-        {/* Dark mode toggle */}
-        <button
-          onClick={() => setIsDark(prev => !prev)}
-          className="absolute bottom-8 left-7 flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] transition-all md:left-16"
-          style={{ background: 'var(--bg-card)', border: '1.5px solid var(--border)', color: 'var(--muted)' }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-        >
-          {isDark ? (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          )}
-        </button>
-
-        {/* Auth submit dark mode override */}
-        <style>{`
-          [data-theme="dark"] .auth-submit-btn {
-            background: var(--accent) !important;
-            color: #0a0f0c !important;
-            box-shadow: var(--shadow-accent) !important;
-          }
-        `}</style>
       </div>
 
-      {/* Right Panel */}
+      {/* Right Panel - Showcase */}
       <div
-        className="relative hidden overflow-hidden md:block"
-        style={{ background: '#0a0c10' }}
-        onMouseEnter={() => setHoveringRight(true)}
-        onMouseLeave={() => setHoveringRight(false)}
+        className="relative hidden overflow-hidden md:flex md:flex-col md:items-center md:justify-center"
+        style={{ background: 'var(--bg-secondary)' }}
       >
-        {/* Grain filter */}
-        <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-          <filter id="grain">
-            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
-            <feColorMatrix type="saturate" values="0"/>
-            <feBlend in="SourceGraphic" mode="multiply" result="blend"/>
-            <feComposite in="blend" in2="SourceGraphic" operator="in"/>
-          </filter>
-        </svg>
-        <div className="pointer-events-none absolute inset-0" style={{ filter: 'url(#grain)', opacity: 0.03 }} />
+        <div
+          className="pointer-events-none absolute"
+          style={{
+            top: '-20%',
+            right: '-10%',
+            width: '600px',
+            height: '600px',
+            background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 60%)',
+            filter: 'blur(60px)',
+          }}
+        />
+        <div
+          className="pointer-events-none absolute"
+          style={{
+            bottom: '-15%',
+            left: '-10%',
+            width: '400px',
+            height: '400px',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 60%)',
+            filter: 'blur(40px)',
+          }}
+        />
 
-        {/* Radial glow */}
-        <div className="pointer-events-none absolute" style={{ top: '-200px', right: '-200px', width: '900px', height: '900px', background: 'radial-gradient(circle, rgba(31,212,112,0.08) 0%, transparent 55%)' }} />
-
-        {/* Grid lines */}
-        <div className="pointer-events-none absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-        }} />
-
-        <div className="flex h-full flex-col items-center justify-center px-12">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={slideIndex}
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: -20 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
-              className="relative"
+        <div className="relative z-10 max-w-[420px] px-12">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.42, delay: reduceMotion ? 0 : 0.1 }}
+          >
+            <p
+              className="mb-6 font-body text-[0.78rem] font-medium uppercase tracking-widest"
+              style={{ color: 'var(--accent)' }}
             >
-              {slideData[slideIndex].card}
-              {slideData[slideIndex].overlay}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Caption */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`caption-${slideIndex}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-10 text-center"
+              AI-Powered Planning
+            </p>
+            <h2
+              className="mb-4 font-display text-[2.8rem] leading-[1.1] tracking-tight"
+              style={{ color: 'var(--ink)' }}
             >
-              <p className="font-body text-[1rem] font-semibold" style={{ color: '#f0eff4', letterSpacing: '-0.01em' }}>{slideData[slideIndex].title}</p>
-              <p className="mt-1 font-body text-[0.85rem]" style={{ color: 'rgba(240,239,244,0.45)' }}>{slideData[slideIndex].sub}</p>
-            </motion.div>
-          </AnimatePresence>
+              Build your
+              <br />
+              <RotatingWord reduceMotion={Boolean(reduceMotion)} />
+            </h2>
+            <p className="mb-10 font-body text-[0.92rem] leading-relaxed" style={{ color: 'var(--muted)' }}>
+              Join thousands using AI to make smarter financial decisions with live market data.
+            </p>
+          </motion.div>
 
-          {/* Dots */}
-          <div className="mt-6 flex items-center gap-2">
-            {slideData.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setSlideIndex(i)}
-                className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === slideIndex ? 20 : 6,
-                  height: 6,
-                  background: i === slideIndex ? 'var(--accent)' : 'rgba(255,255,255,0.2)',
-                }}
-              />
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.36, delay: reduceMotion ? 0 : 0.24 }}
+            className="flex gap-8"
+          >
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <p className="font-display text-[1.6rem] tracking-tight" style={{ color: 'var(--ink)' }}>
+                  {stat.value}
+                </p>
+                <p className="font-body text-[0.75rem]" style={{ color: 'var(--muted)' }}>
+                  {stat.label}
+                </p>
+              </div>
             ))}
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Watermark */}
-        <span className="absolute bottom-6 right-7 font-body text-[0.72rem] uppercase" style={{ color: 'rgba(255,255,255,0.08)', letterSpacing: '0.08em' }}>WealthPath v1.0</span>
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.36, delay: reduceMotion ? 0 : 0.35 }}
+            className="mt-12 rounded-2xl p-5"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={testimonialIndex}
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? {} : { opacity: 0, y: -8 }}
+                transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <p className="mb-3 font-display text-[0.95rem] italic leading-relaxed" style={{ color: 'var(--ink)' }}>
+                  "{testimonials[testimonialIndex].quote}"
+                </p>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={testimonials[testimonialIndex].avatar}
+                    alt={testimonials[testimonialIndex].name}
+                    className="h-10 w-10 rounded-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div>
+                    <p className="font-body text-[0.78rem] font-medium" style={{ color: 'var(--ink)' }}>
+                      {testimonials[testimonialIndex].name}
+                    </p>
+                    <p className="font-body text-[0.7rem]" style={{ color: 'var(--muted)' }}>
+                      {testimonials[testimonialIndex].role}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
