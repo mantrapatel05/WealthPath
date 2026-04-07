@@ -159,9 +159,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
   useEffect(() => {
     if (!success) return;
-    const timer = setTimeout(() => navigate('/'), 1200);
+    const timer = setTimeout(() => navigate(mode === 'signup' ? '/onboarding' : '/'), 1200);
     return () => clearTimeout(timer);
-  }, [navigate, success]);
+  }, [mode, navigate, success]);
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
@@ -265,7 +265,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
             You are all set!
           </h2>
           <p className="font-body text-[0.9rem]" style={{ color: 'var(--muted)' }}>
-            Redirecting to your dashboard...
+            {mode === 'signup' ? 'Taking you into profile setup...' : 'Redirecting to your dashboard...'}
           </p>
         </motion.div>
       </div>

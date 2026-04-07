@@ -58,11 +58,8 @@ export default function Footer() {
         ))}
       </div>
 
-      <div className="mx-auto mt-12 flex max-w-[1200px] flex-col items-center justify-between gap-4 pt-6 md:flex-row" style={{ borderTop: '1px solid var(--border)' }}>
-        <p className="font-body text-[0.78rem]" style={{ color: 'var(--muted-2)' }}>© 2026 WealthPath · Built by mantrapatel05</p>
-        <p className="max-w-[480px] text-right font-body text-[0.72rem] leading-relaxed" style={{ color: 'var(--muted-2)' }}>
-          This is a demo application and does not constitute financial advice. Past performance does not guarantee future results.
-        </p>
+      <div className="mx-auto mt-12 flex max-w-[1200px] items-center justify-center gap-4 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+        <p className="font-body text-[0.78rem]" style={{ color: 'var(--muted-2)' }}>© 2026 WealthPath</p>
       </div>
     </footer>
   );
