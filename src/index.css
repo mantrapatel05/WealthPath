@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   WEALTHPATH v3 — REFINED DESIGN TOKENS
+   ============================================================ */
+
+:root {
+  /* LIGHT MODE — Clean & Crisp */
+  --bg:             #ffffff;
+  --bg-secondary:   #f7f7f8;
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #fafafa;
+  --bg-elevated:    #f2f2f3;
+
+  --border:         #e5e5e7;
+  --border-strong:  #d1d1d5;
+
+  --accent:         #10b981;
+  --accent-light:   #ecfdf5;
+  --accent-dim:     #d1fae5;
+  --accent-glow:    rgba(16, 185, 129, 0.15);
+  --accent-deep:    #059669;
+
+  --ink:            #0f172a;
+  --ink-2:          #334155;
+  --muted:          #64748b;
+  --muted-2:        #94a3b8;
+
+  --forest:         #0f172a;
+  --forest-card:    #1e293b;
+  --forest-border:  #334155;
+
+  --shadow-xs:      0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:      0 1px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md:      0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg:      0 16px 48px rgba(0, 0, 0, 0.10);
+  --shadow-accent:  0 4px 20px rgba(16, 185, 129, 0.18);
+
+  --radius-sm:      8px;
+  --radius-md:      12px;
+  --radius-lg:      16px;
+  --radius-xl:      24px;
+  --radius-pill:    100px;
+
+  --font-display:   'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:      'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* shadcn compat */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted-hsl: 215 16% 47%;
+  --muted-foreground: 215 16% 47%;
+  --accent-hsl: 152 76% 96%;
+  --accent-foreground: 160 84% 39%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border-hsl: 240 5% 90%;
+  --input: 240 5% 90%;
+  --ring: 160 84% 39%;
+  --radius: 0.75rem;
+
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* Smooth theme transitions */
+*, *::before, *::after {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.15s ease;
+}
+svg *, img, video, canvas,
+.no-transition,
+[data-framer-motion] {
+  transition: none !important;
+}
+
+@layer base {
+  * {
+    @apply border-[var(--border)];
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 9999;
+  transform-origin: left;
+}
+
+/* Hero stagger animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+/* Scroll reveal */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Floating card animation */
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes cardFloat2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Typing dots */
+@keyframes typingBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Chart draw */
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes fadeInFill {
+  to { opacity: 1; }
+}
+
+/* Logo strip scroll */
+@keyframes logoScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.3333%); }
+}
+
+/* Typewriter */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+/* Pulse dot */
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.7; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .logo-track { animation: none !important; }
+  .scroll-reveal { opacity: 1; transform: none; }
+  .animate-fade-up { opacity: 1; animation: none; }
+}
+
+
