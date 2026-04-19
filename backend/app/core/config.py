@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 10080
 
     # security(cors)
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://localhost:8080,http://127.0.0.1:8080"
 
     model_config = SettingsConfigDict(
         env_file=".env",

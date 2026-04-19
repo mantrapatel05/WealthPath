@@ -3,6 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
+import {
+  ApiError,
+  clearAuthSession,
+  fetchProfile,
+  loginUser,
+  saveAuthSession,
+  signupUser,
+} from '../lib/auth';
 
 interface AuthPageProps {
   mode: 'login' | 'signup';
@@ -136,6 +144,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const [success, setSuccess] = useState(false);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [notice, setNotice] = useState('');
+  const [redirectTo, setRedirectTo] = useState('/onboarding');
 
   useEffect(() => {
     document.title = mode === 'login' ? 'Sign in - WealthPath' : 'Get started - WealthPath';
@@ -159,9 +168,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
   useEffect(() => {
     if (!success) return;
-    const timer = setTimeout(() => navigate(mode === 'signup' ? '/onboarding' : '/'), 1200);
+    const timer = setTimeout(() => navigate(redirectTo), 1200);
     return () => clearTimeout(timer);
-  }, [mode, navigate, success]);
+  }, [navigate, redirectTo, success]);
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
@@ -186,18 +195,61 @@ export default function AuthPage({ mode }: AuthPageProps) {
     return nextErrors;
   };
 
-  const onSubmit = (event: React.FormEvent) => {
+  const getErrorMessage = (error: unknown) => {
+    if (error instanceof ApiError) return error.detail;
+    return 'Something went wrong. Please try again.';
+  };
+
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setNotice('');
+
     const nextErrors = validate();
     setErrors(nextErrors);
+
     if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const session =
+        mode === 'signup'
+          ? await signupUser({
+              name: name.trim(),
+              email: email.trim().toLowerCase(),
+              password,
+            })
+          : await loginUser({
+              email: email.trim().toLowerCase(),
+              password,
+            });
+
+      saveAuthSession(session);
+
+      if (mode === 'signup') {
+        setRedirectTo('/onboarding');
+        setSuccess(true);
+        return;
+      }
+
+      try {
+        await fetchProfile(session.access_token);
+        setRedirectTo('/dashboard');
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          setRedirectTo('/onboarding');
+        } else {
+          throw error;
+        }
+      }
+
       setSuccess(true);
-    }, 1400);
+    } catch (error) {
+      clearAuthSession();
+      setNotice(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateField =
@@ -265,7 +317,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
             You are all set!
           </h2>
           <p className="font-body text-[0.9rem]" style={{ color: 'var(--muted)' }}>
-            {mode === 'signup' ? 'Taking you into profile setup...' : 'Redirecting to your dashboard...'}
+            {redirectTo === '/dashboard'
+              ? 'Redirecting to your dashboard...'
+              : 'Taking you into profile setup...'}
           </p>
         </motion.div>
       </div>
